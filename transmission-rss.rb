@@ -8,6 +8,7 @@ require 'open-uri'
 require 'nokogiri'
 require File.dirname(__FILE__)+'/torrentsync'
 require 'escape'
+require 'thread'
 
 class Hash
   def symbolize_keys
@@ -27,6 +28,7 @@ class TransmissionRSS
   @@cache_file = "#{ENV["HOME"]}/.transmission-rss.cache.yaml"
   @@config_file = "#{ENV["HOME"]}/.transmission-rss.config.json"
   @@base_url = "http://pipes.yahoo.com/pipes/pipe.run?_id=06545c5b8595ad700ac035cfe90d3a0d&_render=rss"
+  @@mutex = Mutex.new
 
   def initialize(options={})
     @torrent_client = Transmission.new("localhost", 9091)
@@ -41,47 +43,57 @@ class TransmissionRSS
   # downloads all feeds and processes them
   def fetch_feeds
     @config[:feeds].each do |feed|
-      echo "fetching %s (%s)" % [feed[:name], feed[:url]]
-      items = get_feed(feed[:url])
-
-      items = items.delete_if do |item|
-        !feed[:filters].all? {|filter| item[:title].match(filter) }
+      threads = []
+      threads << Thread.new(feed) do |feed|
+        fetch_feed(feed)
       end
-      # filter all dublicates
-      items = items.inject({}) do |result, element|
-        result[element[:title]] = element[:link]
-        result
-      end
-
-      added = false
-      items.each do |title,link|
-        next if @cache.has_key?(feed[:name]) && @cache[feed[:name]].include?(title)
-        if @options[:nodownload]
-          echo title
-          next
-        end
-        echo "downloading "+title
-        begin
-          torrent = get_torrent(link)
-          if process_torrent(torrent, feed[:path])
-            echo "torrent added"
-            @cache[feed[:name]] = [] unless @cache.has_key?(feed[:name])
-            @cache[feed[:name]] << title
-            save_cache
-            added = true
-          end
-        rescue Exception => e
-          echo e.message
-          echo e.backtrace.join("\n")
-        end
-      end
-      echo "new torrents not found" unless added
-      echo ""
+      threads.each { |aThread| aThread.join }
     end
   end
 
 
   private
+
+  def fetch_feed(feed)
+    echo "fetching \"%s\" (%s)" % [feed[:name], feed[:url]]
+    items = get_feed(feed[:url])
+
+    items = items.delete_if do |item|
+      !feed[:filters].all? {|filter| item[:title].match(filter) }
+    end
+    # filter all dublicates
+    items = items.inject({}) do |result, element|
+      result[element[:title]] = element[:link]
+      result
+    end
+
+    added = false
+    items.each do |title,link|
+      if @options[:nodownload]
+        echo title
+        next
+      end
+      next if @cache.has_key?(feed[:name]) && @cache[feed[:name]].include?(title)
+      echo "downloading "+title
+      begin
+        torrent = get_torrent(link)
+        if process_torrent(torrent, feed[:path])
+          echo "torrent added"
+          @@mutex.lock
+          @cache[feed[:name]] = [] unless @cache.has_key?(feed[:name])
+          @cache[feed[:name]] << title
+          save_cache
+          @@mutex.unlock
+          added = true
+        end
+      rescue Exception => e
+        echo e.message
+        echo e.backtrace.join("\n")
+      end
+    end
+    echo "new torrents not found" unless added
+    echo ""
+  end
 
   # downloads torrent
   def get_torrent(url)
@@ -92,6 +104,11 @@ class TransmissionRSS
 
   # adds torrent to transmission
   def process_torrent(torrent, path)
+    File.open("/tmp/transmission-rss.torrent", "w") do |h|
+      h.write(torrent)
+    end
+    #path.gsub!(/['"\\\x0!\@\#\$\%\^\&\*\(\)\[\]]/, '\\\\\0')
+    #pp path
     answer = @torrent_client.exec('torrent-add', :metainfo => Base64::encode64(torrent), "download-dir" => path)
     ["success", "duplicate torrent"].include?(answer["result"])
   end
@@ -99,6 +116,7 @@ class TransmissionRSS
   # returns array of fetched items
   def get_feed(feed_url)
     items = []
+    #return [{:title => "[Zero-Raws] Kaichou wa Maid-sama! - 15 RAW (TBS 1280x720 x264 AAC).mp4", :link => "http://www.nyaatorrents.org/?page=download&tid=142453"}]
     begin
       open(feed_url) do |h|
         parser = RSS::Parser.parse(h.read, false)
@@ -120,6 +138,7 @@ class TransmissionRSS
     ensure
       @cache = {} unless @cache
     end
+    #@cache["Kaichou wa Maid-sama"].delete_at(@cache["Kaichou wa Maid-sama"].index("[Zero-Raws] Kaichou wa Maid-sama! - 15 RAW (TBS 1280x720 x264 AAC).mp4")) pp @cache["Kaichou wa Maid-sama"]
   end
 
   def save_cache
@@ -136,7 +155,7 @@ class TransmissionRSS
         item.symbolize_keys!
         # regexp filters
         item[:filters].each_with_index do |v,k|
-          item[:filters][k] = Regexp.new(v)
+          item[:filters][k] = Regexp.new(v, true)
         end
         # target dir
         Dir.mkdir(item[:path]) unless File.exists?(item[:path])
