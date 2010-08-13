@@ -28,6 +28,7 @@ class TransmissionRSS
   @@cache_file = "#{ENV["HOME"]}/.transmission-rss.cache.yaml"
   @@config_file = "#{ENV["HOME"]}/.transmission-rss.config.json"
   @@base_url = "http://pipes.yahoo.com/pipes/pipe.run?_id=06545c5b8595ad700ac035cfe90d3a0d&_render=rss"
+  @@base_url2 = "http://www.nyaatorrents.org/?page=rss&term="
   @@mutex = Mutex.new
 
   def initialize(options={})
@@ -42,21 +43,20 @@ class TransmissionRSS
 
   # downloads all feeds and processes them
   def fetch_feeds
+    threads = []
     @config[:feeds].each do |feed|
-      threads = []
       threads << Thread.new(feed) do |feed|
         fetch_feed(feed)
       end
-      threads.each { |aThread| aThread.join }
     end
+    threads.each { |aThread| aThread.join }
   end
 
 
   private
 
   def fetch_feed(feed)
-    echo "fetching \"%s\" (%s)" % [feed[:name], feed[:url]]
-    items = get_feed(feed[:url])
+    items = get_feed(feed, :url)
 
     items = items.delete_if do |item|
       !feed[:filters].all? {|filter| item[:title].match(filter) }
@@ -78,7 +78,7 @@ class TransmissionRSS
       begin
         torrent = get_torrent(link)
         if process_torrent(torrent, feed[:path])
-          echo "torrent added"
+          echo "%s torrent added" % title
           @@mutex.lock
           @cache[feed[:name]] = [] unless @cache.has_key?(feed[:name])
           @cache[feed[:name]] << title
@@ -91,8 +91,7 @@ class TransmissionRSS
         echo e.backtrace.join("\n")
       end
     end
-    echo "new torrents not found" unless added
-    echo ""
+    echo "%s new torrents not found" % feed[:name] unless added
   end
 
   # downloads torrent
@@ -114,16 +113,21 @@ class TransmissionRSS
   end
 
   # returns array of fetched items
-  def get_feed(feed_url)
+  def get_feed(feed, url_key)
+    echo "fetching %s (%s)" % [feed[:name], feed[url_key]]
+
     items = []
     #return [{:title => "[Zero-Raws] Kaichou wa Maid-sama! - 15 RAW (TBS 1280x720 x264 AAC).mp4", :link => "http://www.nyaatorrents.org/?page=download&tid=142453"}]
     begin
-      open(feed_url) do |h|
+      open(feed[url_key]) do |h|
         parser = RSS::Parser.parse(h.read, false)
         parser.items.each do |item|
           items << {:title => item.title.gsub(/[^\d\w\s,.!\@\#\$%\^&*\()_+\=\-\[\]]/, ''), :link => item.link.sub('torrentinfo', 'download')}
         end
       end
+    rescue OpenURI::HTTPError => e
+      raise e if url_key == :url2
+      return get_feed(feed, :url2)
     rescue Exception => e
       raise Interrupt.new if e.class == Interrupt
       echo e.message
@@ -167,6 +171,7 @@ class TransmissionRSS
           item[:keywords].each_with_index do |keyword,index|
             item[:url] += "&keyword_"+index.to_s+"="+keyword
           end
+          item[:url2] = @@base_url2 + item[:keywords].join("+")
         end
       end
       # filter feeds

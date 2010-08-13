@@ -68,7 +68,7 @@ threads[:rss] = Thread.new do
       exit if e.class == Interrupt
       notify_exception(e)
     end
-
+    puts "done"
     sleep(60*30)
   end
 end
