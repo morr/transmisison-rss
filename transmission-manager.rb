@@ -20,6 +20,7 @@ require 'rdoc/usage'
 require 'json/ext'
 require File.dirname(__FILE__)+'/transmission-rss'
 require 'pp'
+require 'ap'
 
 def notify_exception(e)
   puts e.message
@@ -73,19 +74,25 @@ threads[:rss] = Thread.new do
   end
 end
 
+
 threads[:conky] = Thread.new do
   puts "conky thread started"
 
   while true
-    torrent_client = Transmission.new("localhost", 9091)
-    result = torrent_client.exec("torrent-get", :fields => [ "name", "peersGettingFromUs", "peersSendingToUs", "status", "isFinished", "downloadedEver", "totalSize", "uploadRatio", "rateDownload", "rateUpload" ])
+    torrents = []
+    begin
+      torrent_client = Transmission.new("localhost", 9091)
+      result = torrent_client.exec("torrent-get", :fields => [ "name", "peersGettingFromUs", "peersSendingToUs", "status", "isFinished", "downloadedEver", "totalSize", "uploadRatio", "rateDownload", "rateUpload" ])
 
-    torrents = result["arguments"]["torrents"].
-      sort_by {|item| (item["status"] == 4 ? 9999999999999 : 0)+item["rateUpload"] }.
-      reverse.
-      select {|item| item["status"] == 4 || item["rateUpload"] != 0 }.
-      slice(0, 12).
-      sort_by {|item| (item["status"] == 4 ? "a" : "b")+(item["name"].sub(/^\[.*?\][_ ]*/, '')) }
+      torrents = result["arguments"]["torrents"].
+        sort_by {|item| (item["status"] == 4 ? 9999999999999 : 0)+item["rateUpload"] }.
+        reverse.
+        select {|item| item["status"] == 4 || item["rateUpload"] != 0 }.
+        slice(0, 12).
+        sort_by {|item| (item["status"] == 4 ? "a" : "b")+(item["name"].sub(/^\[.*?\][_ ]*/, '')) }
+    rescue
+    ensure
+    end
 
     File.open("/tmp/transmission.json", "w") do |h|
       h.write(torrents.to_json)
