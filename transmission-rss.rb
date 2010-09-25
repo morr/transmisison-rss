@@ -122,7 +122,9 @@ class TransmissionRSS
       open(feed[url_key]) do |h|
         parser = RSS::Parser.parse(h.read, false)
         parser.items.each do |item|
-          items << {:title => item.title.gsub(/[^\d\w\s,.!\@\#\$%\^&*\()_+\=\-\[\]]/, ''), :link => item.link.sub('torrentinfo', 'download')}
+          link = item.link.sub('torrentinfo', 'download')
+          link = link.gsub!(/btjunkie.org/, "dl.btjunkie.org") + "/download.torrent" if link.match("http://btjunkie.org/")
+          items << {:title => item.title.gsub(/[^\d\w\s,.!\@\#\$%\^&*\()_+\=\-\[\]]/, ''), :link => link}
         end
       end
     rescue OpenURI::HTTPError => e
