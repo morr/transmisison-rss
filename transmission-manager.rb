@@ -15,8 +15,9 @@
 #
 # --download feed_name, -d feed_name:
 #    download only specified feed
+require 'rubygems'
 require 'getoptlong'
-require 'rdoc/usage'
+#require 'rdoc/usage'
 require 'json/ext'
 require File.dirname(__FILE__)+'/transmission-rss'
 require 'pp'
