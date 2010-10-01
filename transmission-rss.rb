@@ -9,6 +9,7 @@ require 'nokogiri'
 require File.dirname(__FILE__)+'/torrentsync'
 require 'escape'
 require 'thread'
+require 'timeout'
 
 class Hash
   def symbolize_keys
@@ -119,14 +120,18 @@ class TransmissionRSS
     items = []
     #return [{:title => "[Zero-Raws] Kaichou wa Maid-sama! - 15 RAW (TBS 1280x720 x264 AAC).mp4", :link => "http://www.nyaatorrents.org/?page=download&tid=142453"}]
     begin
-      open(feed[url_key]) do |h|
-        parser = RSS::Parser.parse(h.read, false)
-        parser.items.each do |item|
-          link = item.link.sub('torrentinfo', 'download')
-          link = link.gsub!(/btjunkie.org/, "dl.btjunkie.org") + "/download.torrent" if link.match("http://btjunkie.org/")
-          items << {:title => item.title.gsub(/[^\d\w\s,.!\@\#\$%\^&*\()_+\=\-\[\]]/, ''), :link => link}
+      Timeout::timeout(5) do
+        open(feed[url_key]) do |h|
+          parser = RSS::Parser.parse(h.read, false)
+          parser.items.each do |item|
+            link = item.link.sub('torrentinfo', 'download')
+            link = link.gsub!(/btjunkie.org/, "dl.btjunkie.org") + "/download.torrent" if link.match("http://btjunkie.org/")
+            items << {:title => item.title.gsub(/[^\d\w\s,.!\@\#\$%\^&*\()_+\=\-\[\]]/, ''), :link => link}
+          end
         end
       end
+    rescue Timeout::Error => e
+      return get_feed(feed, :url2) unless url_key == :url2
     rescue OpenURI::HTTPError => e
       raise e if url_key == :url2
       return get_feed(feed, :url2)

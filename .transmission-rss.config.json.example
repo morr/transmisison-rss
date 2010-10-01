@@ -1,0 +1,107 @@
+{
+  "defaults": {},
+  "feeds": [
+//            {"name": "Ookami-san to Shichinin no Nakamatachi",
+//             "url": "http://url_to_rss_not_required",
+//             "keywords": ["not", "required"],
+//             "path": "/home/anime_2010_summer/Ookami-san to Shichinin no Nakamatachi",
+//             "filters": ["Zero-Raws", "^(.(?!ass))+$"]
+//            }
+            {"name": "Fairy Tail",
+             "path": "/home/anime_2009_fall/Fairy Tail/",
+             "filters": ["1280", "Leopard", "AAC"]
+            },
+            {"name": "Uragiri wa Boku no Namae wo Shitteiru",
+             "keywords": ["Uragiri", "Shitteiru"],
+             "path": "/home/anime_2010_spring/Uragiri wa Boku no Namae wo Shitteiru/",
+             "filters": ["1280", "Leopard", "AAC"]
+            },
+            {"name": "Giant Killing",
+             "path": "/home/anime_2010_spring/Giant Killing/",
+             "filters": ["1080", "Leopard", "AAC"]
+            },
+            {"name": "Durarara",
+             "keywords": ["Durarara", "Leopard"],
+             "path": "/home/anime_2010_winter/Dyurarara!!/",
+             "filters": ["1080", "Leopard", "AAC"]
+            },
+            {"name": "K-On",
+             "keywords": ["K-On", "Chihiro"],
+             "path": "/home/anime_2010_spring/K-ON!!/",
+             "filters": ["1920", "1080", "Chihiro"]
+            },
+            {"name": "Rainbow - Nisha Rokubou no Shichinin",
+             "keywords": ["Rainbow", "Nisha"],
+             "path": "/home/anime_2010_spring/Rainbow - Nisha Rokubou no Shichinin/",
+             "filters": ["1280", "Leopard", "AAC"]
+            },
+            {"name": "Kaichou wa Maid-sama",
+             "keywords": ["Kaichou", "Maid"],
+             "path": "/home/anime_2010_spring/Kaichou wa Maid-sama!/",
+             "filters": ["1280", "Leopard", "AAC"]
+            },
+// summer 2010
+            {"name": "Ookami-san to Shichinin no Nakamatachi",
+             "keywords": ["Ookami", "Shichinin", "to"],
+             "path": "/home/anime_2010_summer/Ookami-san to Shichinin no Nakamatachi/",
+             "filters": ["Zero-Raws", "^(.(?!ass))+$"]
+            },
+            {"name": "Amagami SS",
+             "path": "/home/anime_2010_summer/Amagami SS/",
+             "filters": ["Zero-Raws", "^(.(?!ass))+$"]
+            },
+            {"name": "Densetsu no Yuusha no Densetsu",
+             "keywords": ["Densetsu", "Yuusha"],
+             "path": "/home/anime_2010_summer/Densetsu no Yuusha no Densetsu/",
+             "filters": ["Zero-Raws", "AAC"]
+            },
+            {"name": "Kuroshitsuji II",
+             "path": "/home/anime_2010_summer/Kuroshitsuji II/",
+             "filters": ["Leopard", "AAC"]
+            },
+            {"name": "Shukufuku no Campanella",
+             "path": "/home/anime_2010_summer/Shukufuku no Campanella/",
+             "filters": ["Zero-Raws", "AAC"]
+            },
+            {"name": "Sekirei Pure Engagement",
+             "path": "/home/anime_2010_summer/Sekirei ~Pure Engagement~/",
+             "filters": ["Leopard", "AAC", "Sekirei Pure"]
+            },
+            {"name": "Seitokai Yakuindomo",
+             "path": "/home/anime_2010_summer/Seitokai Yakuindomo/",
+             "filters": ["Zero-Raws", "AAC"]
+            },
+            {"name": "Highschool of the Dead",
+             "path": "/home/anime_2010_summer/Highschool of the Dead/",
+             "filters": ["Zero-Raws", "AAC"]
+            },
+            {"name": "Seikimatsu Occult Gakuin",
+             "path": "/home/anime_2010_summer/Seikimatsu Occult Gakuin/",
+             "filters": ["Zero-Raws", "AAC"]
+            },
+            {"name": "Nurarihyon no Mago",
+             "path": "/home/anime_2010_summer/Nurarihyon no Mago/",
+             "filters": ["Zero-Raws", "AAC"]
+            },
+            {"name": "Tono to Issho",
+             "path": "/home/anime_2010_summer/Tono to Issho/",
+             "filters": ["720", "Horrible"]
+            },
+            {"name": "Strike Witches 2",
+             "path": "/home/anime_2010_summer/Strike Witches 2/",
+             "filters": ["Leopard", "BS4", "1280", "AAC"]
+            },
+            {"name": "Shiki",
+             "path": "/home/anime_2010_summer/Shiki/",
+             "filters": ["Leopard", "AAC", "1280"]
+            },
+            {"name": "Sengoku Basara 2",
+             "path": "/home/anime_2010_summer/Sengoku Basara 2/",
+             "filters": ["Sengoku Basara 2", "Zero-Raws", "1280", "AAC"]
+            },
+            {"name": "Asobi ni Iku yo",
+             "path": "/home/anime_2010_summer/Asobi ni Iku yo!/",
+             "filters": ["Zero-Raws", "1280", "AAC"]
+            }
+  ]
+}
